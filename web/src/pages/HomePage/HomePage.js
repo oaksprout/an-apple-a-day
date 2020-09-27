@@ -26,6 +26,7 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
 } from '@chakra-ui/core'
+import { useDebounce } from 'use-debounce'
 
 const getPrices = async (_, assetIds) => {
   const { data } = await axios.get(
@@ -78,14 +79,17 @@ const HomePage = () => {
     // { reserve: tusdReserve, amount: '9796.62025' },
   ])
 
+  const [dDeposits] = useDebounce(deposits, 0)
+  const [dBorrows] = useDebounce(borrows, 0)
+
   const handleDepositSubmit = (e) => {
     e.preventDefault()
-    setDeposits([...deposits, currentDeposit])
+    setDeposits([...dDeposits, currentDeposit])
     setCurrentDeposit(initialCurrentDeposit)
   }
 
   const handleDepositAmountUpdate = (thisDeposit, newAmount) => {
-    const newDeposits = deposits.map((deposit) => {
+    const newDeposits = dDeposits.map((deposit) => {
       if (thisDeposit.id === deposit.id) {
         return {
           ...deposit,
@@ -98,14 +102,19 @@ const HomePage = () => {
     setDeposits(newDeposits)
   }
 
-  const handleDepositPriceUpdate = (thisDeposit, newPriceInEth) => {
-    const newDeposits = deposits.map((deposit) => {
+  const handleDepositPriceUpdate = (thisDeposit, newPriceInUsd) => {
+    const newPriceInEth = newPriceInUsd / ethPrice
+
+    const newDeposits = dDeposits.map((deposit) => {
       if (thisDeposit.id === deposit.id) {
         return {
           ...deposit,
           reserve: {
             ...deposit.reserve,
-            price: { ...deposit.reserve.price, priceInEth: newPriceInEth },
+            price: {
+              ...deposit.reserve.price,
+              priceInEth: newPriceInEth || '',
+            },
           },
         }
       }
@@ -116,7 +125,7 @@ const HomePage = () => {
   }
 
   const handleBorrowAmountUpdate = (thisBorrow, newAmount) => {
-    const newBorrows = borrows.map((borrow) => {
+    const newBorrows = dBorrows.map((borrow) => {
       if (thisBorrow.id === borrow.id) {
         return {
           ...borrow,
@@ -129,7 +138,9 @@ const HomePage = () => {
     setBorrows(newBorrows)
   }
 
-  const handleBorrowPriceUpdate = (thisBorrow, newPriceInEth) => {
+  const handleBorrowPriceUpdate = (thisBorrow, newPriceInUsd) => {
+    const newPriceInEth = newPriceInUsd / ethPrice
+
     const newBorrows = borrows.map((borrow) => {
       if (thisBorrow.id === borrow.id) {
         return {
@@ -148,7 +159,7 @@ const HomePage = () => {
 
   const handleBorrowSubmit = (e) => {
     e.preventDefault()
-    setBorrows([...borrows, currentBorrow])
+    setBorrows([...dBorrows, currentBorrow])
     setCurrentBorrow(initialCurrentBorrow)
   }
 
@@ -156,7 +167,7 @@ const HomePage = () => {
     return r + Number(b?.amount) * Number(b?.reserve?.price?.priceInEth)
   }, 0)
 
-  const borrowSumInEth = borrows.reduce((r, b) => {
+  const borrowSumInEth = dBorrows.reduce((r, b) => {
     return r + Number(b?.amount) * Number(b?.reserve?.price?.priceInEth)
   }, 0)
 
@@ -164,7 +175,7 @@ const HomePage = () => {
     return r + Number(b?.reserve?.reserveLiquidationThreshold)
   }, 0)
 
-  const sumOfDepositLiquidations = deposits.reduce((r, b) => {
+  const sumOfDepositLiquidations = dDeposits.reduce((r, b) => {
     return (
       r +
       Number(b?.amount) *
@@ -178,14 +189,16 @@ const HomePage = () => {
     sumOfDepositLiquidations / borrowSumInEth
 
   const handleRemoveDeposit = (removeDeposit) => {
-    const newDeposits = deposits.filter(
+    const newDeposits = dDeposits.filter(
       (deposit) => deposit.id !== removeDeposit.id
     )
     setDeposits(newDeposits)
   }
 
   const handleRemoveBorrow = (removeBorrow) => {
-    const newBorrows = borrows.filter((borrow) => borrow.id !== removeBorrow.id)
+    const newBorrows = dBorrows.filter(
+      (borrow) => borrow.id !== removeBorrow.id
+    )
     setBorrows(newBorrows)
   }
 
@@ -230,7 +243,7 @@ const HomePage = () => {
             <Heading size="2xl" mb={3}>
               {formatHealthFactor(healthFactor)}
             </Heading>
-            {(deposits.length < 1 || borrows.length < 1) && (
+            {(dDeposits.length < 1 || dBorrows.length < 1) && (
               <Text>Add at least 1 deposit and 1 borrow</Text>
             )}
           </Box>
@@ -282,7 +295,7 @@ const HomePage = () => {
               </SimpleGrid>
             </form>
             <Box borderWidth={1} rounded="lg">
-              {deposits.length > 0 ? (
+              {dDeposits.length > 0 ? (
                 <>
                   <Box p={3}>
                     <SimpleGrid columns={2} spacing={3}>
@@ -290,7 +303,7 @@ const HomePage = () => {
                       <Heading size="sm">Price (USD)</Heading>
                     </SimpleGrid>
                   </Box>
-                  {deposits?.map((deposit) => (
+                  {dDeposits?.map((deposit) => (
                     <PseudoBox
                       key={deposit?.reserveId}
                       borderTopWidth={1}
@@ -300,7 +313,7 @@ const HomePage = () => {
                       <SimpleGrid columns={2} spacing={3}>
                         <InputGroup>
                           <NumberInput
-                            value={deposit?.amount}
+                            value={deposit?.amount || ''}
                             onChange={(value) =>
                               handleDepositAmountUpdate(deposit, value)
                             }
@@ -319,19 +332,20 @@ const HomePage = () => {
                         </InputGroup>
                         <Flex>
                           <NumberInput
-                            value={(
-                              deposit?.reserve?.price.priceInEth * ethPrice
-                            ).toFixed(2)}
+                            value={
+                              +(
+                                deposit?.reserve?.price.priceInEth * ethPrice
+                              ).toFixed(2) || ''
+                            }
                             onChange={(value) =>
-                              handleDepositPriceUpdate(
-                                deposit,
-                                value / ethPrice
-                              )
+                              handleDepositPriceUpdate(deposit, value)
                             }
                             step={0.01}
+                            precision={2}
                             mr={2}
+                            min={0}
                           >
-                            <NumberInputField type="number" />
+                            <NumberInputField />
                             <NumberInputStepper>
                               <NumberIncrementStepper />
                               <NumberDecrementStepper />
@@ -400,7 +414,7 @@ const HomePage = () => {
               </SimpleGrid>
             </form>
             <Box borderWidth={1} rounded="lg">
-              {borrows.length > 0 ? (
+              {dBorrows.length > 0 ? (
                 <>
                   <Box p={3}>
                     <SimpleGrid columns={2} spacing={3}>
@@ -408,7 +422,7 @@ const HomePage = () => {
                       <Heading size="sm">Price (USD)</Heading>
                     </SimpleGrid>
                   </Box>
-                  {borrows?.map((borrow) => (
+                  {dBorrows?.map((borrow) => (
                     <PseudoBox
                       key={borrow?.reserveId}
                       borderTopWidth={1}
@@ -418,7 +432,7 @@ const HomePage = () => {
                       <SimpleGrid columns={2} spacing={3}>
                         <InputGroup>
                           <NumberInput
-                            value={borrow?.amount}
+                            value={+borrow?.amount.toFixed(2) || ''}
                             onChange={(value) =>
                               handleBorrowAmountUpdate(borrow, value)
                             }
@@ -435,12 +449,15 @@ const HomePage = () => {
                         </InputGroup>
                         <Flex>
                           <NumberInput
-                            value={(
-                              borrow?.reserve?.price.priceInEth * ethPrice
-                            ).toFixed(2)}
-                            onChange={(value) =>
-                              handleBorrowPriceUpdate(borrow, value / ethPrice)
+                            value={
+                              +(
+                                borrow?.reserve?.price.priceInEth * ethPrice
+                              ).toFixed(2) || ''
                             }
+                            onChange={(value) =>
+                              handleBorrowPriceUpdate(borrow, value)
+                            }
+                            precision={2}
                             step={0.01}
                             mr={2}
                           >
