@@ -191,9 +191,9 @@ const HomePage = () => {
 
   if (loading)
     return (
-      <Flex align="center">
+      <Box textAlign="center" p={50}>
         <Spinner />
-      </Flex>
+      </Box>
     )
   if (error) return <p>Error :(</p>
 
