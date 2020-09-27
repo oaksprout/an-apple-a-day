@@ -222,7 +222,7 @@ const HomePage = () => {
       <div>borrowSumInEth: {borrowSumInEth}</div>
       <div>USD Price of ETH: {ethPrice}</div> */}
       <Box my={5}>
-        <SimpleGrid spacing={5} minChildWidth="425px">
+        <SimpleGrid spacing={5} minChildWidth="400px">
           <Box>
             <Heading size="md" mb={3}>
               Deposits
