@@ -64,8 +64,8 @@ const HomePage = () => {
 
   const reserves = (!loading && !error && formatReserves(data?.reserves)) || []
 
-  const initialCurrentDeposit = { reserve: null, amount: 0 }
-  const initialCurrentBorrow = { reserve: null, amount: 0 }
+  const initialCurrentDeposit = { reserve: { id: '' }, amount: 0 }
+  const initialCurrentBorrow = { reserve: { id: '' }, amount: 0 }
 
   const [currentDeposit, setCurrentDeposit] = useState(initialCurrentDeposit)
   const [currentBorrow, setCurrentBorrow] = useState(initialCurrentBorrow)
@@ -239,8 +239,9 @@ const HomePage = () => {
                     })
                   }
                   value={currentDeposit?.reserve?.id}
-                  placeholder="Select asset"
+                  required
                 >
+                  <option value="">Select asset</option>
                   {reserves.map((reserve) => (
                     <option key={reserve.id} value={reserve.id}>
                       {reserve.symbol}
@@ -255,7 +256,6 @@ const HomePage = () => {
                       amount: value,
                     })
                   }
-                  precision={2}
                   step={10}
                   placeholder="Amount deposited"
                 >
@@ -294,7 +294,6 @@ const HomePage = () => {
                               handleDepositAmountUpdate(deposit, value)
                             }
                             roundedRight={0}
-                            precision={2}
                             step={10}
                           >
                             <NumberInputField type="number" roundedRight={0} />
@@ -318,8 +317,7 @@ const HomePage = () => {
                                 value / ethPrice
                               )
                             }
-                            precision={2}
-                            step={0.1}
+                            step={0.01}
                             mr={2}
                           >
                             <NumberInputField type="number" />
@@ -360,8 +358,9 @@ const HomePage = () => {
                     })
                   }
                   value={currentBorrow?.reserve?.id}
-                  placeholder="Select asset"
+                  required
                 >
+                  <option value="">Select asset</option>
                   {reserves.map((reserve) => (
                     <option key={reserve.id} value={reserve.id}>
                       {reserve.symbol}
@@ -376,7 +375,6 @@ const HomePage = () => {
                       amount: value,
                     })
                   }
-                  precision={2}
                   step={0.01}
                 >
                   <NumberInputField type="number" placeholder="Amount" />
@@ -414,7 +412,6 @@ const HomePage = () => {
                               handleBorrowAmountUpdate(borrow, value)
                             }
                             roundedRight={0}
-                            precision={2}
                             step={10}
                           >
                             <NumberInputField type="number" roundedRight={0} />
@@ -433,8 +430,7 @@ const HomePage = () => {
                             onChange={(value) =>
                               handleBorrowPriceUpdate(borrow, value / ethPrice)
                             }
-                            precision={2}
-                            step={0.1}
+                            step={0.01}
                             mr={2}
                           >
                             <NumberInputField type="number" />
