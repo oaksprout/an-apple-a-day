@@ -210,20 +210,31 @@ const HomePage = () => {
   }
 
   return (
-    <Box p={5}>
-      <Heading size="2xl" mb={2}>
-        An Apple a Day 🍏
-      </Heading>
-      <Heading size="md" mb={5}>
-        Keeps the Aave Liquidators Away…
-      </Heading>
+    <Box p={3}>
+      <Box mb={5}>
+        <Heading size="2xl" mb={3}>
+          An Apple a Day 🍏
+        </Heading>
+        <Text>Keeps the Aave Liquidators 👻 Away…</Text>
+      </Box>
       {/* <div>depositSumInEth: {depositSumInEth}</div>
       <div>liquidationThresholdSum: {liquidationThresholdSum}</div>
       <div>borrowSumInEth: {borrowSumInEth}</div>
       <div>USD Price of ETH: {ethPrice}</div> */}
-      <Box my={5}>
-        <SimpleGrid spacing={5} minChildWidth="400px">
-          <Box>
+      <Box>
+        <SimpleGrid spacing={3} minChildWidth="400px">
+          <Box mb={5}>
+            <Heading size="md" mb={3}>
+              Health Factor
+            </Heading>
+            <Heading size="2xl" mb={3}>
+              {formatHealthFactor(healthFactor)}
+            </Heading>
+            {(deposits.length < 1 || borrows.length < 1) && (
+              <Text>Add at least 1 deposit and 1 borrow</Text>
+            )}
+          </Box>
+          <Box mb={5}>
             <Heading size="md" mb={3}>
               Deposits
             </Heading>
@@ -342,7 +353,7 @@ const HomePage = () => {
               )}
             </Box>
           </Box>
-          <Box>
+          <Box mb={5}>
             <Heading size="md" mb={3}>
               Borrows
             </Heading>
@@ -454,18 +465,6 @@ const HomePage = () => {
                 </Box>
               )}
             </Box>
-          </Box>
-          <Box>
-            <Heading size="md" mb={5}>
-              Health Factor
-            </Heading>
-            <Heading size="2xl" mb={3}>
-              {formatHealthFactor(healthFactor)}
-            </Heading>
-            <div>
-              {(deposits.length < 1 || borrows.length < 1) &&
-                'Add at least 1 deposit and 1 borrow'}
-            </div>
           </Box>
         </SimpleGrid>
       </Box>
