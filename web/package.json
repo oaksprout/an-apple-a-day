@@ -1,0 +1,25 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "private": true,
+  "browserslist": [
+    "defaults"
+  ],
+  "dependencies": {
+    "@aave/protocol-js": "^1.0.3",
+    "@apollo/client": "^3.2.0",
+    "@chakra-ui/core": "^0.8.0",
+    "@emotion/core": "^10.0.35",
+    "@emotion/styled": "^10.0.27",
+    "@redwoodjs/forms": "^0.18.0",
+    "@redwoodjs/router": "^0.18.0",
+    "@redwoodjs/web": "^0.18.0",
+    "axios": "^0.20.0",
+    "emotion-theming": "^10.0.27",
+    "graphql": "^15.3.0",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-query": "^2.23.0"
+  }
+}
