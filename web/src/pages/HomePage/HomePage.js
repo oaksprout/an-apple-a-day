@@ -280,7 +280,7 @@ const HomePage = () => {
                       amount: value,
                     })
                   }
-                  step={10}
+                  step="any"
                   placeholder="Amount deposited"
                 >
                   <NumberInputField type="number" placeholder="Amount" />
@@ -400,7 +400,7 @@ const HomePage = () => {
                       amount: value,
                     })
                   }
-                  step={0.01}
+                  step="any"
                 >
                   <NumberInputField type="number" placeholder="Amount" />
                   <NumberInputStepper>
