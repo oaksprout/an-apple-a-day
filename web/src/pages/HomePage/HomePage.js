@@ -186,14 +186,11 @@ const HomePage = () => {
   }, 0)
 
   const healthFactor =
-    // (depositSumInEth * liquidationThresholdSum) / borrowSumInEth
     sumOfDepositLiquidations / borrowSumInEth
 
   const handleRemoveDeposit = (removeDeposit) => {
     const newDeposits = deposits.filter(
-      (deposit) => {
-        deposit?.reserve?.id !== removeDeposit?.reserve?.id
-      }
+      (deposit) => deposit.reserve.id !== removeDeposit.reserve.id
     )
     setDeposits(newDeposits)
   }
@@ -233,10 +230,6 @@ const HomePage = () => {
         </Heading>
         <Text>Keeps the Aave Liquidators Away…</Text>
       </Box>
-      {/* <div>depositSumInEth: {depositSumInEth}</div>
-      <div>liquidationThresholdSum: {liquidationThresholdSum}</div>
-      <div>borrowSumInEth: {borrowSumInEth}</div>
-      <div>USD Price of ETH: {ethPrice}</div> */}
       <Box>
         <Stack direction="row" spacing={3} wrap="wrap">
           <Box mb={5} minWidth={300}>
