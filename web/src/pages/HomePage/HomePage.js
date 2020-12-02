@@ -191,14 +191,16 @@ const HomePage = () => {
 
   const handleRemoveDeposit = (removeDeposit) => {
     const newDeposits = deposits.filter(
-      (deposit) => deposit.id !== removeDeposit.id
+      (deposit) => {
+        deposit?.reserve?.id !== removeDeposit?.reserve?.id
+      }
     )
     setDeposits(newDeposits)
   }
 
   const handleRemoveBorrow = (removeBorrow) => {
     const newBorrows = borrows.filter(
-      (borrow) => borrow.id !== removeBorrow.id
+      (borrow) => borrow.reserve.id !== removeBorrow.reserve.id
     )
     setBorrows(newBorrows)
   }
@@ -268,11 +270,16 @@ const HomePage = () => {
                     required
                   >
                     <option value="">Select asset</option>
-                    {reserves.map((reserve) => (
-                      <option key={reserve.id} value={reserve.id}>
-                        {reserve.symbol}
-                      </option>
-                    ))}
+                    {reserves.filter(
+                      reserve =>
+                        !deposits.map(deposit => deposit.reserve.id)
+                          .includes(reserve.id))
+                          .map((reserve) => (
+                            <option key={reserve.id} value={reserve.id}>
+                              {reserve.symbol}
+                            </option>
+                          )
+                    )}
                   </Select>
                   <NumberInput
                     value={currentDeposit.amount || ''}
@@ -359,7 +366,7 @@ const HomePage = () => {
                             </NumberInput>
                             <IconButton
                               icon="delete"
-                              onClick={(deposit) => handleRemoveDeposit(deposit)}
+                              onClick={() => handleRemoveDeposit(deposit)}
                             />
                           </Flex>
                         </SimpleGrid>
@@ -392,10 +399,15 @@ const HomePage = () => {
                     required
                   >
                     <option value="">Select asset</option>
-                    {reserves.map((reserve) => (
-                      <option key={reserve.id} value={reserve.id}>
-                        {reserve.symbol}
-                      </option>
+                    {reserves
+                      .filter(
+                      reserve =>
+                        !borrows.map(borrow => borrow.reserve.id)
+                          .includes(reserve.id))
+                        .map((reserve) => (
+                          <option key={reserve.id} value={reserve.id}>
+                            {reserve.symbol}
+                          </option>
                     ))}
                   </Select>
                   <NumberInput
@@ -479,7 +491,7 @@ const HomePage = () => {
                             </NumberInput>
                             <IconButton
                               icon="delete"
-                              onClick={(borrow) => handleRemoveBorrow(borrow)}
+                              onClick={() => handleRemoveBorrow(borrow)}
                             />
                           </Flex>
                         </SimpleGrid>
