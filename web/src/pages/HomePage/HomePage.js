@@ -3,8 +3,8 @@ import { gql, useQuery } from '@apollo/client'
 import axios from 'axios'
 import { useState } from 'react'
 import { useQuery as useReactQuery } from 'react-query'
+import { GiAtom } from 'react-icons/gi'
 import {
-  Spinner,
   Avatar,
   Flex,
   Text,
@@ -14,10 +14,8 @@ import {
   Heading,
   Box,
   SimpleGrid,
-  Grid,
   Stack,
   Select,
-  Input,
   InputGroup,
   InputRightAddon,
   PseudoBox,
@@ -27,7 +25,6 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
 } from '@chakra-ui/core'
-import { useDebounce } from 'use-debounce'
 
 const getPrices = async (_, assetIds) => {
   const { data } = await axios.get(
@@ -164,16 +161,8 @@ const HomePage = () => {
     setCurrentBorrow(initialCurrentBorrow)
   }
 
-  const depositSumInEth = deposits.reduce((r, b) => {
-    return r + Number(b?.amount) * Number(b?.reserve?.price?.priceInEth)
-  }, 0)
-
   const borrowSumInEth = borrows.reduce((r, b) => {
     return r + Number(b?.amount) * Number(b?.reserve?.price?.priceInEth)
-  }, 0)
-
-  const liquidationThresholdSum = deposits.reduce((r, b) => {
-    return r + Number(b?.reserve?.reserveLiquidationThreshold)
   }, 0)
 
   const sumOfDepositLiquidations = deposits.reduce((r, b) => {
@@ -185,8 +174,7 @@ const HomePage = () => {
     )
   }, 0)
 
-  const healthFactor =
-    sumOfDepositLiquidations / borrowSumInEth
+  const healthFactor = sumOfDepositLiquidations / borrowSumInEth
 
   const handleRemoveDeposit = (removeDeposit) => {
     const newDeposits = deposits.filter(
@@ -202,14 +190,6 @@ const HomePage = () => {
     setBorrows(newBorrows)
   }
 
-  if (loading)
-    return (
-      <Box textAlign="center" p={50}>
-        <Spinner />
-      </Box>
-    )
-  if (error) return <p>Error :(</p>
-
   const formatHealthFactor = (healthFactor) => {
     if (healthFactor < 1) {
       return <Text color="red.500">{healthFactor.toFixed(2)} ☠️</Text>
@@ -223,306 +203,361 @@ const HomePage = () => {
   }
 
   return (
-    <Box p={5}>
-      <Box mb={5}>
-        <Heading size="2xl" mb={3}>
-          An Apple a Day
-        </Heading>
-        <Text>Keeps the Aave Liquidators Away…</Text>
-      </Box>
-      <Box>
-        <Stack direction="row" spacing={3} wrap="wrap">
-          <Box mb={5} minWidth={300}>
-            <Heading size="md" mb={3}>
-              Health Factor
+    <>
+      <Flex
+        justifyContent="space-between"
+        alignItems="center"
+        px={5}
+        py={3}
+        borderBottomWidth={1}
+      >
+        <a href="https://mechanaut.xyz">
+          <Flex justifyContent="space-between" alignItems="center">
+            <GiAtom />
+            <Heading ml={1} size="md">
+              Mechanaut
             </Heading>
-            <Heading size="2xl" mb={3}>
-              {formatHealthFactor(healthFactor)}
-            </Heading>
-            {(deposits.length < 1 || borrows.length < 1) && (
-              <Text>Add at least 1 deposit and 1 borrow</Text>
-            )}
-          </Box>
-          <Box  minWidth={400}>
-            <Box mb={5}>
+          </Flex>
+        </a>
+        {/* <ColorModeSwitcher justifySelf="flex-end" /> */}
+      </Flex>
+      <Box p={5}>
+        <Box mb={5}>
+          <Heading size="xl" mb={3}>
+            An Apple a Day
+          </Heading>
+          <Text>Keeps the Aave Liquidators Away…</Text>
+        </Box>
+        <Box>
+          <Stack direction="row" spacing={3} wrap="wrap">
+            <Box mb={5} minWidth={300}>
               <Heading size="md" mb={3}>
-                Deposits
+                Health Factor
               </Heading>
-              <form onSubmit={(e, data) => handleDepositSubmit(e, data)}>
-                <SimpleGrid columns={3} spacing={3} mb={3}>
-                  <Select
-                    onChange={(e) =>
-                      setCurrentDeposit({
-                        ...currentDeposit,
-                        reserve: reserves.filter(
-                          (reserve) => reserve.id === e.target.value
-                        )[0],
-                      })
-                    }
-                    value={currentDeposit?.reserve?.id}
-                    required
-                  >
-                    <option value="">Select asset</option>
-                    {reserves.filter(
-                      reserve =>
-                        !deposits.map(deposit => deposit.reserve.id)
-                          .includes(reserve.id))
-                          .map((reserve) => (
-                            <option key={reserve.id} value={reserve.id}>
-                              {reserve.symbol}
-                            </option>
-                          )
-                    )}
-                  </Select>
-                  <NumberInput
-                    value={currentDeposit.amount || ''}
-                    onChange={(value) =>
-                      setCurrentDeposit({
-                        ...currentDeposit,
-                        amount: value,
-                      })
-                    }
-                    step={0.01}
-                    placeholder="Amount deposited"
-                  >
-                    <NumberInputField
-                      type="number"
-                      placeholder="Amount"
-                      step={0.01}
-                    />
-                    <NumberInputStepper>
-                      <NumberIncrementStepper />
-                      <NumberDecrementStepper />
-                    </NumberInputStepper>
-                  </NumberInput>
-                  <Button size="md" type="submit">
-                    Add Deposit
-                  </Button>
-                </SimpleGrid>
-              </form>
-              <Box borderWidth={1} rounded="lg">
-                {deposits.length > 0 ? (
-                  <>
-                    <Box p={3}>
-                      <SimpleGrid columns={2} spacing={3}>
-                        <Heading size="sm">Asset amount</Heading>
-                        <Heading size="sm">Price (USD)</Heading>
-                      </SimpleGrid>
-                    </Box>
-                    {deposits?.map((deposit) => (
-                      <PseudoBox
-                        key={deposit?.reserveId}
-                        borderTopWidth={1}
-                        p={3}
-                        _first={{ borderTopWidth: 0 }}
-                      >
-                        <SimpleGrid columns={2} spacing={3}>
-                          <InputGroup>
-                            <NumberInput
-                              value={deposit?.amount || ''}
-                              onChange={(value) =>
-                                handleDepositAmountUpdate(deposit, value)
-                              }
-                              roundedRight={0}
-                              step={10}
-                            >
-                              <NumberInputField type="number" roundedRight={0} />
-                              <NumberInputStepper roundedRight={0}>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                              </NumberInputStepper>
-                            </NumberInput>
-                            <InputRightAddon
-                              children={deposit?.reserve?.symbol}
-                            />
-                          </InputGroup>
-                          <Flex>
-                            <NumberInput
-                              value={
-                                +(
-                                  deposit?.reserve?.price.priceInEth * ethPrice
-                                ).toFixed(2) || ''
-                              }
-                              onChange={(value) =>
-                                handleDepositPriceUpdate(deposit, value)
-                              }
-                              step={0.01}
-                              precision={2}
-                              mr={2}
-                              min={0}
-                            >
-                              <NumberInputField />
-                              <NumberInputStepper>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                              </NumberInputStepper>
-                            </NumberInput>
-                            <IconButton
-                              icon="delete"
-                              onClick={() => handleRemoveDeposit(deposit)}
-                            />
-                          </Flex>
-                        </SimpleGrid>
-                      </PseudoBox>
-                    ))}
-                  </>
-                ) : (
-                  <Box p={5} textAlign="center">
-                    No deposits
-                  </Box>
-                )}
-              </Box>
+              <Heading size="2xl" mb={3}>
+                {formatHealthFactor(healthFactor)}
+              </Heading>
+              {(deposits.length < 1 || borrows.length < 1) && (
+                <Text>Add at least 1 deposit and 1 borrow</Text>
+              )}
             </Box>
-            <Box mb={5}>
-              <Heading size="md" mb={3}>
-                Borrows
-              </Heading>
-              <form onSubmit={(e, data) => handleBorrowSubmit(e, data)}>
-                <SimpleGrid columns={3} spacing={3} mb={3}>
-                  <Select
-                    onChange={(e) =>
-                      setCurrentBorrow({
-                        ...currentBorrow,
-                        reserve: reserves.filter(
-                          (reserve) => reserve.id === e.target.value
-                        )[0],
-                      })
-                    }
-                    value={currentBorrow?.reserve?.id}
-                    required
-                  >
-                    <option value="">Select asset</option>
-                    {reserves
-                      .filter(
-                      reserve =>
-                        !borrows.map(borrow => borrow.reserve.id)
-                          .includes(reserve.id))
+            <Box minWidth={400}>
+              <Box mb={5}>
+                <Heading size="md" mb={3}>
+                  Deposits
+                </Heading>
+                <form onSubmit={(e, data) => handleDepositSubmit(e, data)}>
+                  <SimpleGrid columns={3} spacing={3} mb={3}>
+                    <Select
+                      onChange={(e) =>
+                        setCurrentDeposit({
+                          ...currentDeposit,
+                          reserve: reserves.filter(
+                            (reserve) => reserve.id === e.target.value
+                          )[0],
+                        })
+                      }
+                      value={currentDeposit?.reserve?.id}
+                      required
+                      disabled={loading}
+                    >
+                      <option value="">
+                        {loading ? 'Loading...' : 'Select asset'}
+                      </option>
+                      {reserves
+                        .filter(
+                          (reserve) =>
+                            !deposits
+                              .map((deposit) => deposit.reserve.id)
+                              .includes(reserve.id)
+                        )
                         .map((reserve) => (
                           <option key={reserve.id} value={reserve.id}>
                             {reserve.symbol}
                           </option>
-                    ))}
-                  </Select>
-                  <NumberInput
-                    value={currentBorrow.amount || ''}
-                    onChange={(value) =>
-                      setCurrentBorrow({
-                        ...currentBorrow,
-                        amount: value,
-                      })
-                    }
-                    step={0.01}
-                  >
-                    <NumberInputField
-                      type="number"
-                      placeholder="Amount"
+                        ))}
+                    </Select>
+                    <NumberInput
+                      value={currentDeposit.amount || ''}
+                      onChange={(value) =>
+                        setCurrentDeposit({
+                          ...currentDeposit,
+                          amount: value,
+                        })
+                      }
                       step={0.01}
-                    />
-                    <NumberInputStepper>
-                      <NumberIncrementStepper />
-                      <NumberDecrementStepper />
-                    </NumberInputStepper>
-                  </NumberInput>
-                  <Button size="md" type="submit">
-                    Add Borrow
-                  </Button>
-                </SimpleGrid>
-              </form>
-              <Box borderWidth={1} rounded="lg">
-                {borrows.length > 0 ? (
-                  <>
-                    <Box p={3}>
-                      <SimpleGrid columns={2} spacing={3}>
-                        <Heading size="sm">Asset amount</Heading>
-                        <Heading size="sm">Price (USD)</Heading>
-                      </SimpleGrid>
-                    </Box>
-                    {borrows?.map((borrow) => (
-                      <PseudoBox
-                        key={borrow?.reserveId}
-                        borderTopWidth={1}
-                        p={3}
-                        _first={{ borderTopWidth: 0 }}
-                      >
+                      placeholder="Amount deposited"
+                    >
+                      <NumberInputField
+                        type="number"
+                        placeholder="Amount"
+                        step={0.01}
+                      />
+                      <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                      </NumberInputStepper>
+                    </NumberInput>
+                    <Button size="md" type="submit">
+                      Add Deposit
+                    </Button>
+                  </SimpleGrid>
+                </form>
+                <Box borderWidth={1} rounded="lg">
+                  {deposits.length > 0 ? (
+                    <>
+                      <Box p={3}>
                         <SimpleGrid columns={2} spacing={3}>
-                          <InputGroup>
-                            <NumberInput
-                              value={+borrow?.amount.toFixed(2) || ''}
-                              onChange={(value) =>
-                                handleBorrowAmountUpdate(borrow, value)
-                              }
-                              roundedRight={0}
-                              step={10}
-                            >
-                              <NumberInputField type="number" roundedRight={0} />
-                              <NumberInputStepper roundedRight={0}>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                              </NumberInputStepper>
-                            </NumberInput>
-                            <InputRightAddon children={borrow?.reserve?.symbol} />
-                          </InputGroup>
-                          <Flex>
-                            <NumberInput
-                              value={
-                                +(
-                                  borrow?.reserve?.price.priceInEth * ethPrice
-                                ).toFixed(2) || ''
-                              }
-                              onChange={(value) =>
-                                handleBorrowPriceUpdate(borrow, value)
-                              }
-                              precision={2}
-                              step={0.01}
-                              mr={2}
-                            >
-                              <NumberInputField type="number" />
-                              <NumberInputStepper>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                              </NumberInputStepper>
-                            </NumberInput>
-                            <IconButton
-                              icon="delete"
-                              onClick={() => handleRemoveBorrow(borrow)}
-                            />
-                          </Flex>
+                          <Heading size="sm">Asset amount</Heading>
+                          <Heading size="sm">Price (USD)</Heading>
                         </SimpleGrid>
-                      </PseudoBox>
-                    ))}
-                  </>
-                ) : (
-                  <Box p={5} textAlign="center">
-                    No borrows
-                  </Box>
-                )}
+                      </Box>
+                      {deposits?.map((deposit) => (
+                        <PseudoBox
+                          key={deposit?.reserveId}
+                          borderTopWidth={1}
+                          p={3}
+                          _first={{ borderTopWidth: 0 }}
+                        >
+                          <SimpleGrid columns={2} spacing={3}>
+                            <InputGroup>
+                              <NumberInput
+                                value={deposit?.amount || ''}
+                                onChange={(value) =>
+                                  handleDepositAmountUpdate(deposit, value)
+                                }
+                                roundedRight={0}
+                                step={10}
+                              >
+                                <NumberInputField
+                                  type="number"
+                                  roundedRight={0}
+                                />
+                                <NumberInputStepper roundedRight={0}>
+                                  <NumberIncrementStepper />
+                                  <NumberDecrementStepper />
+                                </NumberInputStepper>
+                              </NumberInput>
+                              <InputRightAddon
+                                // eslint-disable-next-line react/no-children-prop
+                                children={deposit?.reserve?.symbol}
+                              />
+                            </InputGroup>
+                            <Flex>
+                              <NumberInput
+                                value={
+                                  +(
+                                    deposit?.reserve?.price.priceInEth *
+                                    ethPrice
+                                  ).toFixed(2) || ''
+                                }
+                                onChange={(value) =>
+                                  handleDepositPriceUpdate(deposit, value)
+                                }
+                                step={0.01}
+                                precision={2}
+                                mr={2}
+                                min={0}
+                              >
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                  <NumberIncrementStepper />
+                                  <NumberDecrementStepper />
+                                </NumberInputStepper>
+                              </NumberInput>
+                              <IconButton
+                                icon="delete"
+                                onClick={() => handleRemoveDeposit(deposit)}
+                              />
+                            </Flex>
+                          </SimpleGrid>
+                        </PseudoBox>
+                      ))}
+                    </>
+                  ) : (
+                    <Box p={5} textAlign="center">
+                      No deposits
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+              <Box mb={5}>
+                <Heading size="md" mb={3}>
+                  Borrows
+                </Heading>
+                <form onSubmit={(e, data) => handleBorrowSubmit(e, data)}>
+                  <SimpleGrid columns={3} spacing={3} mb={3}>
+                    <Select
+                      onChange={(e) =>
+                        setCurrentBorrow({
+                          ...currentBorrow,
+                          reserve: reserves.filter(
+                            (reserve) => reserve.id === e.target.value
+                          )[0],
+                        })
+                      }
+                      value={currentBorrow?.reserve?.id}
+                      required
+                      disabled={loading}
+                    >
+                      <option value="">
+                        {loading ? 'Loading...' : 'Select asset'}
+                      </option>
+                      {reserves
+                        .filter(
+                          (reserve) =>
+                            !borrows
+                              .map((borrow) => borrow.reserve.id)
+                              .includes(reserve.id)
+                        )
+                        .map((reserve) => (
+                          <option key={reserve.id} value={reserve.id}>
+                            {reserve.symbol}
+                          </option>
+                        ))}
+                    </Select>
+                    <NumberInput
+                      value={currentBorrow.amount || ''}
+                      onChange={(value) =>
+                        setCurrentBorrow({
+                          ...currentBorrow,
+                          amount: value,
+                        })
+                      }
+                      step={0.01}
+                    >
+                      <NumberInputField
+                        type="number"
+                        placeholder="Amount"
+                        step={0.01}
+                      />
+                      <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                      </NumberInputStepper>
+                    </NumberInput>
+                    <Button size="md" type="submit">
+                      Add Borrow
+                    </Button>
+                  </SimpleGrid>
+                </form>
+                <Box borderWidth={1} rounded="lg">
+                  {borrows.length > 0 ? (
+                    <>
+                      <Box p={3}>
+                        <SimpleGrid columns={2} spacing={3}>
+                          <Heading size="sm">Asset amount</Heading>
+                          <Heading size="sm">Price (USD)</Heading>
+                        </SimpleGrid>
+                      </Box>
+                      {borrows?.map((borrow) => (
+                        <PseudoBox
+                          key={borrow?.reserveId}
+                          borderTopWidth={1}
+                          p={3}
+                          _first={{ borderTopWidth: 0 }}
+                        >
+                          <SimpleGrid columns={2} spacing={3}>
+                            <InputGroup>
+                              <NumberInput
+                                value={+borrow?.amount.toFixed(2) || ''}
+                                onChange={(value) =>
+                                  handleBorrowAmountUpdate(borrow, value)
+                                }
+                                roundedRight={0}
+                                step={10}
+                              >
+                                <NumberInputField
+                                  type="number"
+                                  roundedRight={0}
+                                />
+                                <NumberInputStepper roundedRight={0}>
+                                  <NumberIncrementStepper />
+                                  <NumberDecrementStepper />
+                                </NumberInputStepper>
+                              </NumberInput>
+                              <InputRightAddon
+                                children={borrow?.reserve?.symbol}
+                              />
+                            </InputGroup>
+                            <Flex>
+                              <NumberInput
+                                value={
+                                  +(
+                                    borrow?.reserve?.price.priceInEth * ethPrice
+                                  ).toFixed(2) || ''
+                                }
+                                onChange={(value) =>
+                                  handleBorrowPriceUpdate(borrow, value)
+                                }
+                                precision={2}
+                                step={0.01}
+                                mr={2}
+                              >
+                                <NumberInputField type="number" />
+                                <NumberInputStepper>
+                                  <NumberIncrementStepper />
+                                  <NumberDecrementStepper />
+                                </NumberInputStepper>
+                              </NumberInput>
+                              <IconButton
+                                icon="delete"
+                                onClick={() => handleRemoveBorrow(borrow)}
+                              />
+                            </Flex>
+                          </SimpleGrid>
+                        </PseudoBox>
+                      ))}
+                    </>
+                  ) : (
+                    <Box p={5} textAlign="center">
+                      No borrows
+                    </Box>
+                  )}
+                </Box>
               </Box>
             </Box>
-          </Box>
-        </Stack>
-      </Box>
-      <Box mt={5}>
-        <Box>
-          <Text mb={3}>
-            Worried about impermanent loss?<br />Check out my other tool – <Link color="green.500" href="https://baller.netlify.app">🏀 $BALLER</Link> – which helps you calculate IL in liquidity pools.
-          </Text>
-          <Text mb={3}>
-            To hear when I release more crypto investing tools,
-            <br />
-            <Link href="https://twitter.com/tannedoaksprout" color="green.500">
-              follow me on Twitter @tannedoaksprout
-            </Link>.
-          </Text>
-          <Link href="https://twitter.com/tannedoaksprout">
-            <Avatar
-              src="https://pbs.twimg.com/profile_images/1228631846726049792/eJn9xjAo_400x400.jpg"
-              size="sm"
-              name="Oaksprout"
-            />
-          </Link>
+          </Stack>
         </Box>
       </Box>
-    </Box>
+      <Flex
+        my={5}
+        borderTopWidth={1}
+        px={5}
+        py={3}
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Text mr={5} alignItems="center">
+          <Flex display="inline" alignItems="center">
+            Made by{' '}
+            <Link href="https://twitter.com/tannedoaksprout" color="green.500">
+              <Flex display="inline" alignItems="center">
+                <Avatar
+                  src="https://pbs.twimg.com/profile_images/1228631846726049792/eJn9xjAo_400x400.jpg"
+                  size="sm"
+                  name="Oaksprout"
+                  mr="1"
+                />
+                oaksprout
+              </Flex>
+            </Link>{' '}
+            in support of{' '}
+            <Link href="https://aave.com" color="green.500">
+              Aave
+            </Link>
+          </Flex>
+        </Text>
+        <a href="https://mechanaut.xyz">
+          <Flex alignItems="center">
+            <GiAtom />
+            <Heading ml={1} size="md">
+              Mechanaut
+            </Heading>
+          </Flex>
+        </a>
+      </Flex>
+    </>
   )
 }
 
