@@ -4,6 +4,9 @@ import axios from 'axios'
 import { useState } from 'react'
 import { useQuery as useReactQuery } from 'react-query'
 import { GiAtom } from 'react-icons/gi'
+import { FaAppleAlt } from 'react-icons/fa'
+import { TiWarningOutline } from 'react-icons/ti'
+import { GiDeadHead } from 'react-icons/gi'
 import {
   Avatar,
   Flex,
@@ -169,8 +172,8 @@ const HomePage = () => {
     return (
       r +
       Number(b?.amount) *
-        Number(b?.reserve?.price?.priceInEth) *
-        Number(b?.reserve?.reserveLiquidationThreshold)
+      Number(b?.reserve?.price?.priceInEth) *
+      Number(b?.reserve?.reserveLiquidationThreshold)
     )
   }, 0)
 
@@ -192,11 +195,32 @@ const HomePage = () => {
 
   const formatHealthFactor = (healthFactor) => {
     if (healthFactor < 1) {
-      return <Text color="red.500">{healthFactor.toFixed(2)} ☠️</Text>
+      return (
+        <Flex alignItems="center" color="red.500">
+          <Text mr={3}>
+            {healthFactor.toFixed(2)}
+          </Text>
+          <GiDeadHead display="inline-block" />
+        </Flex>
+      )
     } else if (healthFactor >= 1 && healthFactor < 2) {
-      return <Text color="orange.500">{healthFactor.toFixed(2)} ⚠️</Text>
+      return (
+        <Flex alignItems="center" color="yellow.400">
+          <Text mr={3}>
+            {healthFactor.toFixed(2)}
+          </Text>
+          <TiWarningOutline display="inline-block" />
+        </Flex>
+      )
     } else if (healthFactor >= 2 && healthFactor < Infinity) {
-      return <Text color="green.500">{healthFactor.toFixed(2)} 🍏</Text>
+      return (
+        <Flex alignItems="center" color="green.500">
+          <Text mr={3}>
+            {healthFactor.toFixed(2)}
+          </Text>
+          <FaAppleAlt display="inline-block" />
+        </Flex>
+      )
     }
 
     return '--'
@@ -205,32 +229,34 @@ const HomePage = () => {
   return (
     <>
       <Flex
-        justifyContent="space-between"
         alignItems="center"
-        px={5}
-        py={3}
+        justifyContent="space-between"
         borderBottomWidth={1}
+        px={6}
+        py={3}
       >
-        <a href="https://mechanaut.xyz">
-          <Flex justifyContent="space-between" alignItems="center">
-            <GiAtom />
-            <Heading ml={1} size="md">
-              Mechanaut
-            </Heading>
-          </Flex>
-        </a>
-        {/* <ColorModeSwitcher justifySelf="flex-end" /> */}
-      </Flex>
-      <Box p={5}>
-        <Box mb={5}>
-          <Heading size="xl" mb={3}>
-            An Apple a Day
+        <Box>
+          <Heading
+            size="lg"
+            textTransform="uppercase"
+            letterSpacing="-0.25px"
+            fontWeight="bold"
+          >
+            Apple a Day
           </Heading>
-          <Text>Keeps the Aave Liquidators Away…</Text>
         </Box>
+        <a
+          href="https://1inch.exchange/#/r/0xC523433AC1Cc396fA58698739b3B0531Fe6C4268/USDC/AAVE"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button variantColor="green">Buy $AAVE</Button>
+        </a>
+      </Flex>
+      <Box py={12} px={6}>
         <Box>
           <Stack direction="row" spacing={3} wrap="wrap">
-            <Box mb={5} minWidth={300}>
+            <Box mb={6} minWidth={300}>
               <Heading size="md" mb={3}>
                 Health Factor
               </Heading>
@@ -242,7 +268,7 @@ const HomePage = () => {
               )}
             </Box>
             <Box minWidth={400}>
-              <Box mb={5}>
+              <Box mb={6}>
                 <Heading size="md" mb={3}>
                   Deposits
                 </Heading>
@@ -375,13 +401,13 @@ const HomePage = () => {
                       ))}
                     </>
                   ) : (
-                    <Box p={5} textAlign="center">
+                    <Box p={6} textAlign="center">
                       No deposits
                     </Box>
                   )}
                 </Box>
               </Box>
-              <Box mb={5}>
+              <Box mb={6}>
                 <Heading size="md" mb={3}>
                   Borrows
                 </Heading>
@@ -477,6 +503,7 @@ const HomePage = () => {
                                 </NumberInputStepper>
                               </NumberInput>
                               <InputRightAddon
+                                // eslint-disable-next-line react/no-children-prop
                                 children={borrow?.reserve?.symbol}
                               />
                             </InputGroup>
@@ -510,7 +537,7 @@ const HomePage = () => {
                       ))}
                     </>
                   ) : (
-                    <Box p={5} textAlign="center">
+                    <Box p={6} textAlign="center">
                       No borrows
                     </Box>
                   )}
@@ -520,21 +547,14 @@ const HomePage = () => {
           </Stack>
         </Box>
       </Box>
-      <Flex
-        my={5}
-        borderTopWidth={1}
-        px={5}
-        py={3}
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <Text mr={5} alignItems="center">
+      <Box px={6} py={6} borderTopWidth={1}>
+        <Box alignItems="center" mb={6}>
           <Flex display="inline" alignItems="center">
             Made by{' '}
             <Link href="https://twitter.com/tannedoaksprout" color="green.500">
               <Flex display="inline" alignItems="center">
                 <Avatar
-                  src="https://pbs.twimg.com/profile_images/1228631846726049792/eJn9xjAo_400x400.jpg"
+                  src="https://i.imgur.com/pWdjOzL.jpg"
                   size="sm"
                   name="Oaksprout"
                   mr="1"
@@ -547,16 +567,18 @@ const HomePage = () => {
               Aave
             </Link>
           </Flex>
-        </Text>
-        <a href="https://mechanaut.xyz">
-          <Flex alignItems="center">
-            <GiAtom />
-            <Heading ml={1} size="md">
-              Mechanaut
-            </Heading>
-          </Flex>
-        </a>
-      </Flex>
+        </Box>
+        <Box>
+          <a href="https://mechanaut.xyz">
+            <Flex alignItems="center">
+              <GiAtom />
+              <Heading ml={1} size="md">
+                Mechanaut
+              </Heading>
+            </Flex>
+          </a>
+        </Box>
+      </Box>
     </>
   )
 }
