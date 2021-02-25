@@ -232,26 +232,13 @@ const HomePage = () => {
         alignItems="center"
         justifyContent="space-between"
         borderBottomWidth={1}
-        px={6}
-        py={3}
+        p={6}
       >
         <Box>
-          <Heading
-            size="lg"
-            textTransform="uppercase"
-            letterSpacing="-0.25px"
-            fontWeight="bold"
-          >
+          <Heading size="lg" fontWeight="bold">
             Apple a Day
           </Heading>
         </Box>
-        <a
-          href="https://1inch.exchange/#/r/0xC523433AC1Cc396fA58698739b3B0531Fe6C4268/USDC/AAVE"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button variantColor="green">Buy $AAVE</Button>
-        </a>
       </Flex>
       <Box py={12} px={6}>
         <Box>
@@ -264,8 +251,15 @@ const HomePage = () => {
                 {formatHealthFactor(healthFactor)}
               </Heading>
               {(deposits.length < 1 || borrows.length < 1) && (
-                <Text>Add at least 1 deposit and 1 borrow</Text>
+                <Text mb={6}>Add at least 1 deposit and 1 borrow</Text>
               )}
+              <a
+                href="https://1inch.exchange/#/r/0xC523433AC1Cc396fA58698739b3B0531Fe6C4268/USDC/AAVE"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="outline" variantColor="green">Buy $AAVE</Button>
+              </a>
             </Box>
             <Box minWidth={400}>
               <Box mb={6}>
@@ -547,8 +541,14 @@ const HomePage = () => {
           </Stack>
         </Box>
       </Box>
-      <Box px={6} py={6} borderTopWidth={1}>
-        <Box alignItems="center" mb={6}>
+      <Flex
+        alignItems="center"
+        justifyContent="space-between"
+        px={6}
+        py={6}
+        borderTopWidth={1}
+      >
+        <Box>
           <Flex display="inline" alignItems="center">
             Made by{' '}
             <Link href="https://twitter.com/tannedoaksprout" color="green.500">
@@ -578,7 +578,7 @@ const HomePage = () => {
             </Flex>
           </a>
         </Box>
-      </Box>
+      </Flex>
     </>
   )
 }
